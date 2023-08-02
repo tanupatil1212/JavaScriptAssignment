@@ -15,6 +15,13 @@ class User {
         if (typeof fullName !== "string" || fullName.trim() === "") {
             return "Invalid Full Name";
         }
+        if (!["male", "female", "other"].includes(gender)) {
+            return "Invalid Gender. Gender should be 'male', 'female', or 'other'.";
+        }
+    
+        if (typeof age !== "number" || isNaN(age) || age <= 0) {
+            return "Invalid Age. Age should be a positive number.";
+        }
 
         if (!this.isAdmin) {
             return "Not Authorized";
@@ -28,6 +35,13 @@ class User {
     static newAdmin(fullName, gender, age) {
         if (typeof fullName !== "string" || fullName.trim() === "") {
             return "Invalid Full Name";
+        }
+        if (!["male", "female", "other"].includes(gender)) {
+            return "Invalid Gender. Gender should be 'male', 'female', or 'other'.";
+        }
+    
+        if (typeof age !== "number" || isNaN(age) || age <= 0) {
+            return "Invalid Age. Age should be a positive number.";
         }
 
         return new User(fullName, true, gender, age);
