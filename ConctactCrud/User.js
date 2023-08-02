@@ -227,10 +227,10 @@ class User {
     }
 }
 module.exports = User;
-let adminObj = User.newAdmin("yash",'M', 27)
-let user1=adminObj.newUser("tanuja", 'F', 21)//
-let user2=adminObj.newUser("Namrata", 'F', 43)//
-let user3=adminObj.newUser("Deepak", 'M', 52)//
+let adminObj = User.newAdmin("yash",'male', 27)
+let user1=adminObj.newUser("tanuja", 'female', 21)//
+let user2=adminObj.newUser("Namrata", 'female', 43)//
+let user3=adminObj.newUser("Deepak", 'male', 52)//
 user1.createContact("tanuja","India")
 user1.createContactInfo(0,"Email","tanujapatil@gmail.com")//
 
