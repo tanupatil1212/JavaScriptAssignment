@@ -1,9 +1,13 @@
-const Contact = require("./Contact.js")
+const Contact = require("./Contact.js");
+const NotFoundError = require("./error/NotFoundError.js");
+const UnauthorizedError = require("./error/Unauthorized.js");
+const ValidationError = require("./error/Validation.js");
+
 class User {
     static allUsers = [];
-    static id = 0
+    static ID = 0
     constructor(fullName, isAdmi, gender, age) {
-        this.ID = User.id++;
+        this.ID = User.ID++;
         this.fullName = fullName;
         this.isAdmin = isAdmi;
         this.gender = gender;
@@ -12,233 +16,375 @@ class User {
     }
 
     newUser(fullName, gender, age) {
-        if (typeof fullName !== "string" || fullName.trim() === "") {
-            return "Invalid Full Name";
-        }
-        if (!["male", "female", "other"].includes(gender)) {
-            return "Invalid Gender. Gender should be 'male', 'female', or 'other'.";
-        }
+        try {
+          if (typeof fullName !== "string" || fullName.trim() === "") {
+            throw new ValidationError("Invalid Full Name");
+          }
     
-        if (typeof age !== "number" || isNaN(age) || age <= 0) {
-            return "Invalid Age. Age should be a positive number.";
-        }
-
-        if (!this.isAdmin) {
-            return "Not Authorized";
-        }
-
-        let userObj = new User(fullName, false, gender, age);
-        User.allUsers.push(userObj);
-        return userObj;
-    }
-
-    static newAdmin(fullName, gender, age) {
-        if (typeof fullName !== "string" || fullName.trim() === "") {
-            return "Invalid Full Name";
-        }
-        if (!["male", "female", "other"].includes(gender)) {
-            return "Invalid Gender. Gender should be 'male', 'female', or 'other'.";
-        }
+          if (!["male", "female", "other"].includes(gender)) {
+            throw new ValidationError(
+              "Invalid Gender. Gender should be 'male', 'female', or 'other'."
+            );
+          }
     
-        if (typeof age !== "number" || isNaN(age) || age <= 0) {
-            return "Invalid Age. Age should be a positive number.";
+          if (typeof age !== "number" || isNaN(age) || age <= 0) {
+            throw new ValidationError("Invalid Age. Age should be a positive number.");
+          }
+    
+          if (!this.isAdmin) {
+            throw new UnauthorizedError("Not Authorized");
+          }
+    
+          let userObj = new User(fullName, false, gender, age);
+          User.allUsers.push(userObj);
+          return userObj;
+        } catch (error) {
+          throw new ValidationError("Validation Error: " + error.message);
         }
-
-        return new User(fullName, true, gender, age);
-    }
-
-    getAllUsers() {
-        if (!this.isAdmin) {
-            return "Not Authorized";
+      }
+    
+      static newAdmin(fullName, gender, age) {
+        try {
+          if (typeof fullName !== "string" || fullName.trim() === "") {
+            throw new ValidationError("Invalid Full Name");
+          }
+    
+          if (!["male", "female", "other"].includes(gender)) {
+            throw new ValidationError(
+              "Invalid Gender. Gender should be 'male', 'female', or 'other'."
+            );
+          }
+    
+          if (typeof age !== "number" || isNaN(age) || age <= 0) {
+            throw new ValidationError("Invalid Age. Age should be a positive number.");
+          }
+    
+          return new User(fullName, true, gender, age);
+        } catch (error) {
+          throw new ValidationError("Validation Error: " + error.message);
         }
-
-        return User.allUsers;
-    }
-//0 1
-    findUser(ID) {
-        for (let index = 0; index < User.allUsers.length; index++) {
+      }
+    
+      getAllUsers() {
+        try {
+          if (!this.isAdmin) {
+            throw new UnauthorizedError("Not Authorized");
+          }
+    
+          return User.allUsers;
+        } catch (error) {
+          throw new UnauthorizedError("Authorization Error: " + error.message);
+        }
+      }
+    
+      findUser(ID) {
+        try {
+          for (let index = 0; index < User.allUsers.length; index++) {
             if (ID === User.allUsers[index].ID) {
-                return [index, true];
+              return [index, true];
             }
+          }
+          return [-1, false];
+        } catch (error) {
+          throw new NotFoundError("User Not Found: " + error.message);
         }
-        return [-1, false];
-    }
-
-    updateUser(ID, parameter, newValue) {
-        if (!this.isAdmin) {
-            return "Not Authorized";
-        }
-
-        let [indexOfUser, isUserExist] = this.findUser(ID);
-        if (!isUserExist) {
-            return "User Not Found";
-        }
-
-        switch (parameter) {
+      }
+    
+      updateUser(ID, parameter, newValue) {
+        try {
+          if (!this.isAdmin) {
+            throw new UnauthorizedError("Not Authorized");
+          }
+    
+          let [indexOfUser, isUserExist] = this.findUser(ID);
+          if (!isUserExist) {
+            throw new NotFoundError("User Not Found");
+          }
+    
+          switch (parameter) {
             case "fullName":
-                if (typeof newValue !== "string" || newValue.trim() === "") {
-                    return "Invalid Full Name";
-                }
-                User.allUsers[indexOfUser].fullName = newValue;
-                return User.allUsers[indexOfUser];
+              if (typeof newValue !== "string" || newValue.trim() === "") {
+                throw new ValidationError("Invalid Full Name");
+              }
+              User.allUsers[indexOfUser].fullName = newValue;
+              return User.allUsers[indexOfUser];
             case "gender":
-                if (typeof newValue !== "string" || !["male", "female", "other"].includes(newValue.toLowerCase())) {
-                    return "Invalid Gender";
-                }
-                User.allUsers[indexOfUser].gender = newValue.toLowerCase();
-                return User.allUsers[indexOfUser];
+              if (typeof newValue !== "string" || !["male", "female", "other"].includes(newValue.toLowerCase())) {
+                throw new ValidationError("Invalid Gender");
+              }
+              User.allUsers[indexOfUser].gender = newValue.toLowerCase();
+              return User.allUsers[indexOfUser];
             case "age":
-                if (typeof newValue !== "number" || isNaN(newValue) || newValue < 0) {
-                    return "Invalid Age";
-                }
-                User.allUsers[indexOfUser].age = newValue;
-                return User.allUsers[indexOfUser];
+              if (typeof newValue !== "number" || isNaN(newValue) || newValue < 0) {
+                throw new ValidationError("Invalid Age");
+              }
+              User.allUsers[indexOfUser].age = newValue;
+              return User.allUsers[indexOfUser];
             default:
-                return "Invalid parameter";
+              throw new ValidationError("Invalid parameter");
+          }
+        } catch (error) {
+          throw new ValidationError("Validation Error: " + error.message);
         }
-    }
-
-    deleteUser(ID) {
-        if (!this.isAdmin) {
-            return "Not Authorized";
+      }
+    
+      deleteUser(ID) {
+        try {
+          if (!this.isAdmin) {
+            throw new UnauthorizedError("Not Authorized");
+          }
+    
+          let [indexOfUser, isUserExist] = this.findUser(ID);
+          if (!isUserExist) {
+            throw new NotFoundError("User Not Found");
+          }
+    
+          User.allUsers.splice(indexOfUser, 1);
+          return "User Deleted Successfully";
+        } catch (error) {
+          throw new NotFoundError("User Not Found: " + error.message);
         }
-
-        let [indexOfUser, isUserExist] = this.findUser(ID);
-        if (!isUserExist) {
-            return "User Not Found";
+      }
+    
+      createContact(contactName, country) {
+        try {
+          if (this.isAdmin) {
+            throw new UnauthorizedError("Admin cannot create Contacts");
+          }
+    
+          if (typeof contactName !== "string" || contactName.trim() === "") {
+            throw new ValidationError("Invalid Contact Name");
+          }
+    
+          if (typeof country !== "string" || country.trim() === "") {
+            throw new ValidationError("Invalid country Name");
+          }
+    
+          let contactObj = new Contact(contactName, country);
+          this.contacts.push(contactObj);
+          return contactObj;
+        } catch (error) {
+          throw new ValidationError("Validation Error: " + error.message);
         }
-
-        User.allUsers.splice(indexOfUser, 1);
-        return "User Deleted Successfully";
-    }
-
-    createContact(contactName,country) {
-        if (this.isAdmin) {
-            return "Admin cannot create Contacts";
+      }
+    
+      getAllContact() {
+        try {
+          if (this.isAdmin) {
+            throw new UnauthorizedError("Admin does not have Contacts");
+          }
+    
+          return this.contacts;
+        } catch (error) {
+          throw new UnauthorizedError("Authorization Error: " + error.message);
         }
-
-        if (typeof contactName !== "string" || contactName.trim() === "") {
-            return "Invalid Contact Name";
-        }
-
-        if (typeof country !== "string" || country.trim() === "") {
-            return "Invalid country Name";
-        }
-
-        let contactObj = new Contact(contactName, country);
-        this.contacts.push(contactObj);
-        return contactObj;
-    }
-
-    getAllContact() {
-        if (this.isAdmin) {
-            return "Admin does not have Contacts";
-        }
-
-        return this.contacts;//aaray/
-    }
-
-    findContact(contactID) {
-        for (let index = 0; index < this.contacts.length; index++) {
-            if (this.contacts[index].ID === contactID) {
-                return [index, true];
+      }
+    
+      findContact(ID) {
+        try {
+          for (let index = 0; index < this.contacts.length; index++) {
+            if (this.contacts[index].ID === ID) {
+              return [index, true];
             }
+          }
+          return [-1, false];
+        } catch (error) {
+          throw new NotFoundError("Contact Not Found: " + error.message);
         }
-        return [-1, false];
-    }
-
-    updateContact(contactID, parameter, newValue) {
-        if (this.isAdmin) {
-            return "Admin cannot update contacts";
+      }
+    
+      updateContact(ID, parameter, newValue) {
+        try {
+          if (this.isAdmin) {
+            throw new UnauthorizedError("Admin cannot update contacts");
+          }
+    
+          let [indexOfContact, isContactExist] = this.findContact(ID);
+          if (!isContactExist) {
+            throw new NotFoundError("Contact Does not Exist");
+          }
+    
+          return this.contacts[indexOfContact].updateContact(parameter, newValue);
+    
+        } catch (error) {
+          throw new NotFoundError("Contact Not Found: " + error.message);
         }
-
-        let [indexOfContact, isContactExist] = this.findContact(contactID);
-        if (!isContactExist) {
-            return "Contact Does not Exist";
+      }
+    
+      deleteContact(ID) {
+        try {
+          if (this.isAdmin) {
+            throw new UnauthorizedError("Admin cannot delete Contacts");
+          }
+    
+          let [indexOfContact, isContactExist] = this.findContact(ID);
+          if (!isContactExist) {
+            throw new NotFoundError("Contact Does not Exist");
+          }
+    
+          this.contacts.splice(indexOfContact, 1);
+          return "Contact Deleted Successfully";
+        } catch (error) {
+          throw new NotFoundError("Contact Not Found: " + error.message);
         }
-
-
-
-        return this.contacts[indexOfContact].updateContact(parameter, newValue);
-    }
-
-    deleteContact(contactID) {
-        if (this.isAdmin) {
-            return "Admin cannot delete Contacts";
+      }
+    
+      createContactInfo(ID, typeofContactInfo, valueOfContactInfo) {
+        try {
+          if (this.isAdmin) {
+            throw new UnauthorizedError("Admin cannot create contact info");
+          }
+    
+          let [indexOfContact, isContactExist] = this.findContact(ID);
+          if (!isContactExist) {
+            throw new NotFoundError("Contact Does not Exist");
+          }
+    
+          return this.contacts[indexOfContact].createContactInfo(typeofContactInfo, valueOfContactInfo);
+        } catch (error) {
+          throw new NotFoundError("Contact Not Found: " + error.message);
         }
-
-        let [indexOfContact, isContactExist] = this.findContact(contactID);
-        if (!isContactExist) {
-            return "Contact Does not Exist";
+      }
+    
+      getContactInfo(ID) {
+        try {
+          if (this.isAdmin) {
+            throw new UnauthorizedError("Admin does not have Contacts");
+          }
+    
+          let [indexOfContact, isContactExist] = this.findContact(ID);
+          if (!isContactExist) {
+            throw new NotFoundError("Contact Not Found");
+          }
+    
+          return this.contacts[indexOfContact].getContactInfo(); 
+    
+        } catch (error) {
+          throw new NotFoundError("Contact Not Found: " + error.message);
         }
-
-        this.contacts.splice(indexOfContact, 1);
-        return "Contact Deleted Successfully";
-    }
-
-    createContactInfo(contactID, typeofContactInfo, valueOfContactInfo) {
-        if (this.isAdmin) {
-            return "Admin cannot create contact info";
+      }
+    
+      updateContactInfo(ID, contactInfoID, typeofContactInfo, valueOfContactInfo) {
+        try {
+          if (this.isAdmin) {
+            throw new UnauthorizedError("Admin cannot update contacts");
+          }
+    
+          let [indexOfContact, isContactExist] = this.findContact(ID);
+          if (!isContactExist) {
+            throw new NotFoundError("ContactInfo Does not Exist");
+          }
+    
+          return this.contacts[indexOfContact].updateContactInfo(contactInfoID,typeofContactInfo, valueOfContactInfo);
+    
+        } catch (error) {
+          throw new NotFoundError("Contact Not Found: " + error.message);
         }
-
-        let [indexOfContact, isContactExist] = this.findContact(contactID);
-        if (!isContactExist) {
-            return "Contact Does not Exist";
-        }console.log(this.contacts[indexOfContact]);
-        
-        return this.contacts[indexOfContact].createContactInfo(typeofContactInfo, valueOfContactInfo);
-    }
-
-    getContactInfo(contactID) {
-        if (this.isAdmin) {
-            return "Admin does not have Contacts";
+      }
+    
+      deleteContactInfo(ID, contactInfoID) {
+        try {
+          if (this.isAdmin) {
+            throw new UnauthorizedError("Only user can delete contact!");
+          }
+    
+          if (typeof contactID !== "number") {
+            throw new ValidationError("Invalid contactID passed!");
+          }
+    
+          let [indexOfContact, isContact] = this.findContact(ID);
+          if (!isContact) {
+            throw new NotFoundError("No contact found. Contact does not exist");
+          }
+    
+          return this.contacts[indexOfContact].deleteContactInfo(contactInfoID);
+    
+        } catch (error) {
+          throw new NotFoundError("Contact Not Found: " + error.message);
         }
-
-        let [indexOfContact, isContactExist] = this.findContact(contactID);
-        if (!isContactExist) {
-            return "User not found";
+      }
+    
+      getUserByID(ID) {
+        try {
+          if (!this.isAdmin) {
+            throw new UnauthorizedError("Accessible to Administrators Only");
+          }
+    
+          let [index, result] = this.findUser(ID);
+          if (!result) {
+            throw new NotFoundError("User Not Found");
+          }
+          return User.allUsers[index];
+        } catch (error) {
+          throw new NotFoundError("User Not Found: " + error.message);
         }
-        return this.contacts[indexOfContact].getContactInfo(); 
-    }
-    updateContactInfo(contactID, parameter, newValue) {
-        if (this.isAdmin) {
-            return "Admin cannot update contacts";
+      }
+    
+      getContactByID(contactID) {
+        try {
+          if (this.isAdmin) {
+            throw new UnauthorizedError("Only Users can access contacts");
+          }
+    
+          let [index, result] = this.findContact(contactID);
+          if (!result) {
+            throw new NotFoundError("Contact Not Found");
+          }
+          return this.contacts[index];
+        } catch (error) {
+          throw new NotFoundError("Contact Not Found: " + error.message);
         }
-
-        let [indexOfContact, isContactExist] = this.findContact(contactID);
-        if (!isContactExist) {
-            return "ContactInfo Does not Exist";
+      }
+    
+      getContactInfoByID(contactID, contactInfoID) {
+        try {
+          if (this.isAdmin) {
+            throw new UnauthorizedError("Only Users can access Contacts-Info");
+          }
+    
+          let [index, result] = this.findContact(contactID);
+          if (!result) {
+            throw new NotFoundError("Contact Not Found");
+          }
+          let info = this.contacts[index].getContactInfoByID(contactInfoID);
+          return info;
+        } catch (error) {
+          throw new NotFoundError("Contact Not Found: " + error.message);
         }
-
-        return this.contacts[indexOfContact].updateContactInfo(parameter, newValue);
-    }
-    deleteContactInfo(contactID) {
-        if (this.isAdmin) {
-            return "Only user can delete contact!";
-        }
-        if (typeof contactID !== "number") { // Fix parameter check
-            return "Invalid contactID passed!";
-        }
-        let [indexOfContact, isContact] = this.findContact(contactID);
-        if (!isContact) {
-            return "No contact found. Contact does not exist";
-        }
-        return this.contacts[indexOfContact].deleteContactInfo();
-    }
+      } 
 }
-module.exports = User;
-let adminObj = User.newAdmin("yash",'male', 27)
-let user1=adminObj.newUser("tanuja", 'female', 21)//
-let user2=adminObj.newUser("Namrata", 'female', 43)//
-let user3=adminObj.newUser("Deepak", 'male', 52)//
-user1.createContact("tanuja","India")
-user1.createContactInfo(0,"Email","tanujapatil@gmail.com")//
 
-user1.createContact("Namrata","India")
-user1.createContactInfo(1,"Email","namratapatil@gmail.com")//
-let updatedContact = user1.updateContact(0, "contactName", "Sneha");
-console.log("Updated Contact from index 0",updatedContact);
-console.log("all users",adminObj.getAllUsers());
+let adminObj = User.newAdmin("tanuja",'female', 21)
+
+console.log(adminObj);
+let user1=adminObj.newUser("tanuja", 'female', 21)//
+console.log(user1);
+let user2=adminObj.newUser("Sneha", 'female', 24)//
+console.log(user2);
+console.log("Deleted --> ", adminObj.deleteUser(1));
+// console.log(this.allUsers);
+console.log(adminObj.getAllUsers());
+// let user2=adminObj.newUser("Namrata", 'female', 43)//
+// let user3=adminObj.newUser("Deepak", 'male', 52)//
+// user1.createContact("tanuja","India")
+// user1.createContactInfo(0,"Email","tanujapatil@gmail.com")//
+// // console.log(user1.deleteContact(0));
+// // console.log(adminObj.deleteUser(1))
+// // let a = User.getAllUsers();
+// // console.log(a);
+
+// user1.createContact("Namrata","India")
+// console.log(user1.createContactInfo(1,"Email","namratapatil@gmail.com"));//
+// console.log("Deleted --> ", user1.deleteUser(0));
+// console.log(user1.getAllContact);
+// console.log("All info:",user1.getContactInfo(1));
+
+// let updatedContact = user1.updateContact(0, "contactName", "Sneha");
+// // console.log("Updated Contact from index 0",updatedContact);
+
+// console.log("all users",adminObj.getAllUsers());
+// // console.log("Deleted --> ", user1.deleteContactInfo(0));
+// console.log("all user",user1.getContactInfo(0));
 // let allContacts = user1.getAllContact();
 // console.log(allContacts);
 // user1.deleteContact()
@@ -258,3 +404,4 @@ console.log("all users",adminObj.getAllUsers());
 
 
 // console.log(user1);
+module.exports = User
