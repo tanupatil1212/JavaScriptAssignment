@@ -39,7 +39,7 @@ class User {
           User.allUsers.push(userObj);
           return userObj;
         } catch (error) {
-          throw new ValidationError("Validation Error: " + error.message);
+          console.log(error);
         }
       }
     
@@ -61,7 +61,7 @@ class User {
     
           return new User(fullName, true, gender, age);
         } catch (error) {
-          throw new ValidationError("Validation Error: " + error.message);
+          console.log(error);
         }
       }
     
@@ -73,7 +73,7 @@ class User {
     
           return User.allUsers;
         } catch (error) {
-          throw new UnauthorizedError("Authorization Error: " + error.message);
+          console.log(error);
         }
       }
     
@@ -81,12 +81,13 @@ class User {
         try {
           for (let index = 0; index < User.allUsers.length; index++) {
             if (ID === User.allUsers[index].ID) {
-              return [index, true];
+              return index
             }
           }
-          return [-1, false];
-        } catch (error) {
-          throw new NotFoundError("User Not Found: " + error.message);
+          throw new NotFoundError("User Not Found")
+        } 
+        catch (error) {
+          console.log(error);
         }
       }
     
@@ -96,11 +97,8 @@ class User {
             throw new UnauthorizedError("Not Authorized");
           }
     
-          let [indexOfUser, isUserExist] = this.findUser(ID);
-          if (!isUserExist) {
-            throw new NotFoundError("User Not Found");
-          }
-    
+          let indexOfUser = this.findUser(ID);
+         
           switch (parameter) {
             case "fullName":
               if (typeof newValue !== "string" || newValue.trim() === "") {
@@ -124,7 +122,7 @@ class User {
               throw new ValidationError("Invalid parameter");
           }
         } catch (error) {
-          throw new ValidationError("Validation Error: " + error.message);
+          console.log(error);
         }
       }
     
@@ -134,15 +132,13 @@ class User {
             throw new UnauthorizedError("Not Authorized");
           }
     
-          let [indexOfUser, isUserExist] = this.findUser(ID);
-          if (!isUserExist) {
-            throw new NotFoundError("User Not Found");
-          }
+          let indexOfUser = this.findUser(ID);
+          
     
           User.allUsers.splice(indexOfUser, 1);
           return "User Deleted Successfully";
         } catch (error) {
-          throw new NotFoundError("User Not Found: " + error.message);
+          console.log(error);
         }
       }
     
@@ -164,7 +160,7 @@ class User {
           this.contacts.push(contactObj);
           return contactObj;
         } catch (error) {
-          throw new ValidationError("Validation Error: " + error.message);
+          console.log(error);
         }
       }
     
@@ -176,7 +172,7 @@ class User {
     
           return this.contacts;
         } catch (error) {
-          throw new UnauthorizedError("Authorization Error: " + error.message);
+          console.log(error);
         }
       }
     
@@ -184,12 +180,12 @@ class User {
         try {
           for (let index = 0; index < this.contacts.length; index++) {
             if (this.contacts[index].ID === ID) {
-              return [index, true];
+              return index
             }
           }
-          return [-1, false];
+        throw new NotFoundError("Contact Not Found")
         } catch (error) {
-          throw new NotFoundError("Contact Not Found: " + error.message);
+          console.log(error);
         }
       }
     
@@ -199,15 +195,12 @@ class User {
             throw new UnauthorizedError("Admin cannot update contacts");
           }
     
-          let [indexOfContact, isContactExist] = this.findContact(ID);
-          if (!isContactExist) {
-            throw new NotFoundError("Contact Does not Exist");
-          }
-    
+          let indexOfContact = this.findContact(ID);
+         
           return this.contacts[indexOfContact].updateContact(parameter, newValue);
     
         } catch (error) {
-          throw new NotFoundError("Contact Not Found: " + error.message);
+          console.log(error);
         }
       }
     
@@ -217,15 +210,13 @@ class User {
             throw new UnauthorizedError("Admin cannot delete Contacts");
           }
     
-          let [indexOfContact, isContactExist] = this.findContact(ID);
-          if (!isContactExist) {
-            throw new NotFoundError("Contact Does not Exist");
-          }
+        indexOfContact = this.findContact(ID);
+         
     
           this.contacts.splice(indexOfContact, 1);
           return "Contact Deleted Successfully";
         } catch (error) {
-          throw new NotFoundError("Contact Not Found: " + error.message);
+          console.log(error);
         }
       }
     
@@ -235,14 +226,12 @@ class User {
             throw new UnauthorizedError("Admin cannot create contact info");
           }
     
-          let [indexOfContact, isContactExist] = this.findContact(ID);
-          if (!isContactExist) {
-            throw new NotFoundError("Contact Does not Exist");
-          }
+          let indexOfContact= this.findContact(ID);
+          
     
           return this.contacts[indexOfContact].createContactInfo(typeofContactInfo, valueOfContactInfo);
         } catch (error) {
-          throw new NotFoundError("Contact Not Found: " + error.message);
+          console.log(error);
         }
       }
     
@@ -252,15 +241,13 @@ class User {
             throw new UnauthorizedError("Admin does not have Contacts");
           }
     
-          let [indexOfContact, isContactExist] = this.findContact(ID);
-          if (!isContactExist) {
-            throw new NotFoundError("Contact Not Found");
-          }
+          let indexOfContact= this.findContact(ID);
+         
     
           return this.contacts[indexOfContact].getContactInfo(); 
     
         } catch (error) {
-          throw new NotFoundError("Contact Not Found: " + error.message);
+          console.log(error);
         }
       }
     
@@ -270,15 +257,12 @@ class User {
             throw new UnauthorizedError("Admin cannot update contacts");
           }
     
-          let [indexOfContact, isContactExist] = this.findContact(ID);
-          if (!isContactExist) {
-            throw new NotFoundError("ContactInfo Does not Exist");
-          }
-    
+          let indexOfContact= this.findContact(ID);
+         
           return this.contacts[indexOfContact].updateContactInfo(contactInfoID,typeofContactInfo, valueOfContactInfo);
     
         } catch (error) {
-          throw new NotFoundError("Contact Not Found: " + error.message);
+         console.log(error);
         }
       }
     
@@ -288,19 +272,16 @@ class User {
             throw new UnauthorizedError("Only user can delete contact!");
           }
     
-          if (typeof contactID !== "number") {
+          if (typeof ID !== "number") {
             throw new ValidationError("Invalid contactID passed!");
           }
     
-          let [indexOfContact, isContact] = this.findContact(ID);
-          if (!isContact) {
-            throw new NotFoundError("No contact found. Contact does not exist");
-          }
-    
+          let indexOfContact = this.findContact(ID);
+         
           return this.contacts[indexOfContact].deleteContactInfo(contactInfoID);
     
         } catch (error) {
-          throw new NotFoundError("Contact Not Found: " + error.message);
+          console.log(error);
         }
       }
     
@@ -310,13 +291,13 @@ class User {
             throw new UnauthorizedError("Accessible to Administrators Only");
           }
     
-          let [index, result] = this.findUser(ID);
+          let index = this.findUser(ID);
           if (!result) {
             throw new NotFoundError("User Not Found");
           }
           return User.allUsers[index];
         } catch (error) {
-          throw new NotFoundError("User Not Found: " + error.message);
+         console.log(error);
         }
       }
     
@@ -326,13 +307,11 @@ class User {
             throw new UnauthorizedError("Only Users can access contacts");
           }
     
-          let [index, result] = this.findContact(contactID);
-          if (!result) {
-            throw new NotFoundError("Contact Not Found");
-          }
+          let index= this.findContact(contactID);
+         
           return this.contacts[index];
         } catch (error) {
-          throw new NotFoundError("Contact Not Found: " + error.message);
+         console.log(error);
         }
       }
     
@@ -342,14 +321,12 @@ class User {
             throw new UnauthorizedError("Only Users can access Contacts-Info");
           }
     
-          let [index, result] = this.findContact(contactID);
-          if (!result) {
-            throw new NotFoundError("Contact Not Found");
-          }
+          let index= this.findContact(contactID);
+         
           let info = this.contacts[index].getContactInfoByID(contactInfoID);
           return info;
         } catch (error) {
-          throw new NotFoundError("Contact Not Found: " + error.message);
+          console.log(error);
         }
       } 
 }
@@ -364,6 +341,7 @@ console.log(user2);
 console.log("Deleted --> ", adminObj.deleteUser(1));
 // console.log(this.allUsers);
 console.log(adminObj.getAllUsers());
+
 // let user2=adminObj.newUser("Namrata", 'female', 43)//
 // let user3=adminObj.newUser("Deepak", 'male', 52)//
 // user1.createContact("tanuja","India")

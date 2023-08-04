@@ -16,25 +16,25 @@ const ValidationError = require("./error/Validation");
             switch (parameter) {
                 case "contactName":
                     if (typeof newValue !== "string" || newValue.trim() === "") {
-                        throw new ValidationError ("Invalid Contact Name");
+                        throw new Validation ("Invalid Contact Name");
                     }
                     this.contactName = newValue;
                     break;
     
                 case "country":
                     if (typeof newValue !== "string" || newValue.trim() === "") {
-                        throw new ValidationError("Invalid Country Name");
+                        throw new Validation("Invalid Country Name");
                     }
                     this.country = newValue;
                     break;
     
                 default:
-                    throw new ValidationError("Invalid Parameter");
+                    throw new Validation("Invalid Parameter");
             }
     
             return this;
          }catch(error){
-            throw new ValidationError("Validation Error: " + error.message);
+            console.log(error);
          }
         }
     
@@ -44,7 +44,7 @@ const ValidationError = require("./error/Validation");
             this.contactInfos.push(contactInfo);
             return contactInfo;
          }catch (error) {
-            throw new ValidationError("Validation Error: " + error.message);
+           console.log(error);
           }
         }
     
@@ -61,20 +61,18 @@ const ValidationError = require("./error/Validation");
             }
             return [-1, false];
          }catch (error) {
-            throw new NotFoundError("ContactInfo Not Found: " + error.message);
+            throw new NotFound("ContactInfo Not Found: " + error.message);
           }
         }
     
         updateContactInfo(contactInfoID, parameter, newValue) {
             try{
-            let [indexOfContactInfo, isContactInfoExist] = this.findContactInfo(contactInfoID);
-            if (!isContactInfoExist) {
-                throw new NotFoundError("ContactInfo Does not Exist");
-      }
+            let indexOfContactInfo = this.findContactInfo(contactInfoID);
+            
     
             return this.contactInfos[indexOfContactInfo].updateContactInfo(parameter, newValue);
     } catch (error) {
-        throw new NotFoundError("ContactInfo Not Found: " + error.message);
+        console.log(error);
       }
         
         }
@@ -82,15 +80,13 @@ const ValidationError = require("./error/Validation");
     
         deleteContactInfo(contactInfoID) {
             try{
-            let [indexOfContactInfo, isContactInfoExist] = this.findContactInfo(contactInfoID);
-            if (!isContactInfoExist) {
-                throw new NotFoundError("ContactInfo Does not Exist");
-            }
+            indexOfContactInfo = this.findContactInfo(contactInfoID);
+           
     
             this.contactInfos.splice(indexOfContactInfo, 1);
             return "ContactInfo Deleted Successfully";
         }catch (error) {
-            throw new NotFoundError("ContactInfo Not Found: " + error.message);
+            console.log(error);
           }
     }
 }   
